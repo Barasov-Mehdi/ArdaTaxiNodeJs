@@ -54,10 +54,18 @@ const DriversSchema = new mongoose.Schema({
         4: { type: Number, default: 0 },
         5: { type: Number, default: 0 }
     },
-    dailyEarnings: { 
-        type: Number, 
-        default: 0 
+    dailyEarnings: {
+        type: Number,
+        default: 0
     }, // New field for daily earnings
+    atWork: {
+        type: Boolean,
+        default: false, // Default value is false
+    },
+    onOrder: {
+        type: Boolean,
+        default: false, // Default value is false
+    }
 });
 
 module.exports = mongoose.model('Drivers', DriversSchema);

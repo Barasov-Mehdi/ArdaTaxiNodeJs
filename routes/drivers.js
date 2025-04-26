@@ -67,6 +67,7 @@ router.post('/updateLocation', async (req, res) => {
 });
 
 // Driver registration route
+// Driver registration route
 router.post('/register', async (req, res) => {
     const { firstName, lastName, phone, carPlate, carModel, carColor, email, password } = req.body;
 
@@ -85,6 +86,8 @@ router.post('/register', async (req, res) => {
             carColor,
             email,
             password,
+            atWork: false,  // Initialize atWork to false
+            onOrder: false   // Initialize onOrder to false
         });
 
         // Hashing the password
@@ -93,7 +96,6 @@ router.post('/register', async (req, res) => {
 
         await driver.save();
 
-        // Kayıt işlemi tamamlandıktan sonra kullanıcıyı aynı sayfada bırakma
         return res.render('driverRegister', { success: "Registration successful!" });
 
     } catch (err) {
@@ -101,6 +103,46 @@ router.post('/register', async (req, res) => {
         return res.render('driverRegister', { error: "Server error. Please try again later." });
     }
 });
+
+router.put('/:id', async (req, res) => {
+    const { atWork, onOrder } = req.body;
+
+    try {
+        const driver = await Drivers.findById(req.params.id);
+        if (!driver) {
+            return res.status(404).json({ msg: 'Driver not found' });
+        }
+
+        // Update the required fields
+        if (typeof atWork !== 'undefined') {
+            driver.atWork = atWork;
+        }
+        if (typeof onOrder !== 'undefined') {
+            driver.onOrder = onOrder;
+        }
+
+        await driver.save();
+        res.json(driver);
+    } catch (error) {
+        console.error("Error updating driver:", error);
+        res.status(500).json({ msg: 'Server error', error: error.message });
+    }
+});
+
+// Get accepted orders for a specific driver
+router.get('/my-orders/:driverId', async (req, res) => {
+    try {
+        const requests = await TaxiRequest.find({ driverId: req.params.driverId, isTaken: true });
+        if (requests.length === 0) {
+            return res.status(404).json({ message: 'Bu sürücü tarafından alınmış sipariş bulunamadı.' });
+        }
+        res.json(requests);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Siparişler alınırken bir hata oluştu.' });
+    }
+});
+
 
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
